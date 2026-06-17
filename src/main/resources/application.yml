@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:${loom.project-root}/loom.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+loom:
+  project-root: ${LOOM_PROJECT_ROOT:${user.home}/loom-projects/default}
