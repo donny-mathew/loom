@@ -6,6 +6,8 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema.sql
+  transaction:
+    default-timeout: 30
 
 loom:
   project-root: ${LOOM_PROJECT_ROOT:${user.home}/loom-projects/default}
