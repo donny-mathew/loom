@@ -3,6 +3,7 @@ package com.loom.web;
 import com.loom.ai.FindingExtractor;
 import com.loom.ai.FindingProposal;
 import com.loom.ai.QuestioningService;
+import com.loom.linking.CrossSessionLinker;
 import com.loom.savegate.SaveGateService;
 import com.loom.session.ChatMessage;
 import com.loom.session.SessionService;
@@ -22,15 +23,18 @@ public class ChatController {
     private final QuestioningService questioningService;
     private final FindingExtractor findingExtractor;
     private final SaveGateService saveGateService;
+    private final CrossSessionLinker crossSessionLinker;
 
     public ChatController(SessionService sessionService,
                           QuestioningService questioningService,
                           FindingExtractor findingExtractor,
-                          SaveGateService saveGateService) {
+                          SaveGateService saveGateService,
+                          CrossSessionLinker crossSessionLinker) {
         this.sessionService = sessionService;
         this.questioningService = questioningService;
         this.findingExtractor = findingExtractor;
         this.saveGateService = saveGateService;
+        this.crossSessionLinker = crossSessionLinker;
     }
 
     @PostMapping("/session")
@@ -87,6 +91,7 @@ public class ChatController {
     @DeleteMapping("/session")
     public ResponseEntity<Void> closeSession(@RequestParam String sessionId) {
         sessionService.closeSession(sessionId);
+        crossSessionLinker.runForSession(sessionId);  // async — returns immediately
         return ResponseEntity.noContent().build();
     }
 }
