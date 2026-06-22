@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ── Finding proposal cards ── -->
+<div th:fragment="panel" id="findings-panel-inner">
+  <div class="findings-header">
+    <span th:text="${#lists.size(proposals)} + ' finding' + (${#lists.size(proposals)} == 1 ? '' : 's')">Findings</span>
+  </div>
+
+  <div class="findings-scroll" id="findings-scroll">
+    <div th:each="p,i : ${proposals}"
+         class="finding-card"
+         th:id="'card-' + ${i.index}"
+         th:data-type="${p.type}"
+         th:data-title="${p.title}"
+         th:data-body="${p.body}">
+
+      <span class="finding-type" th:classappend="'type-' + ${p.type}" th:text="${p.type}"></span>
+      <div class="finding-title" th:text="${p.title}"></div>
+      <div class="finding-body"  th:text="${p.body}"></div>
+      <div class="finding-actions">
+        <button class="finding-btn keep"   th:onclick="'toggleCard(' + ${i.index} + ', true)'"  >✓ Keep</button>
+        <button class="finding-btn reject" th:onclick="'toggleCard(' + ${i.index} + ', false)'">✕ Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="findings-footer">
+    <button class="btn btn-green" style="width:100%" onclick="saveFindings()">Save to Wiki</button>
+  </div>
+</div>
+
+<!-- ── Saved confirmation ── -->
+<div th:fragment="saved" id="findings-panel-inner">
+  <div class="findings-header">Saved</div>
+  <div class="saved-msg">
+    <h3>✓ Saved to wiki</h3>
+    <p th:text="${count} + ' finding' + (${count} == 1 ? '' : 's') + ' integrated into '' + ${topic} + '''"></p>
+    <br/>
+    <button class="btn btn-ghost btn-sm" onclick="location.reload()">New session</button>
+  </div>
+</div>
+
+</body>
+</html>

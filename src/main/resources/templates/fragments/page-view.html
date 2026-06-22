@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="view" style="display:flex;flex-direction:column;height:100%">
+  <!-- Rendered markdown -->
+  <div class="notes-view" id="page-view" th:utext="${html}"></div>
+  <!-- Raw editor (hidden until Edit clicked) -->
+  <textarea class="notes-editor" id="page-editor" style="display:none"
+            th:text="${raw}"></textarea>
+</div>
+
+</body>
+</html>

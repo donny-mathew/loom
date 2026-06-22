@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ── Full chat tab ── -->
+<div th:fragment="page" class="chat-layout">
+
+  <!-- Left: conversation area -->
+  <div class="chat-main" id="chat-main">
+
+    <!-- Before session start -->
+    <div class="session-start" id="session-start">
+      <h1>What are you thinking about?</h1>
+      <p>Give your session a topic and start the conversation. Loom will ask the questions.</p>
+      <form class="topic-form"
+            hx-post="/chat/session"
+            hx-target="#chat-main"
+            hx-swap="innerHTML">
+        <input class="topic-input" name="topic" placeholder="e.g. pricing model for small teams" required autofocus/>
+        <button class="btn btn-primary" type="submit">Start →</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right: findings panel (initially empty) -->
+  <div class="findings-panel" id="findings-panel">
+    <div class="findings-header">Findings</div>
+    <div class="findings-empty">Extract findings from the conversation to see proposals here.</div>
+  </div>
+
+</div>
+
+<!-- ── Conversation view (after session created) ── -->
+<div th:fragment="conversation" id="chat-main" class="chat-main">
+  <input type="hidden" id="session-id" th:value="${sessionId}"/>
+  <input type="hidden" id="topic" th:value="${topic}"/>
+
+  <div class="chat-header">
+    <h2 th:text="${topic}">Topic</h2>
+  </div>
+
+  <div class="messages" id="messages">
+    <!-- messages appended here -->
+  </div>
+
+  <div class="chat-input-bar">
+    <textarea class="chat-input" id="msg-input" placeholder="Type a message…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+    <button class="btn btn-primary" onclick="sendMsg()">Send</button>
+    <button class="btn btn-ghost" onclick="extractFindings()">Extract →</button>
+  </div>
+</div>
+
+</body>
+</html>

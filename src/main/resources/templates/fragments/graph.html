@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="page" class="graph-layout">
+  <div class="graph-toolbar">
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#60a5fa"></span>insight</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4ade80"></span>pattern</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span>constraint</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f87171"></span>tension</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#c084fc"></span>question</div>
+    </div>
+    <div class="legend" style="margin-left:auto">
+      <div class="legend-item">━ supports</div>
+      <div class="legend-item" style="color:#f87171">━ contradicts</div>
+      <div class="legend-item">╌ relates-to</div>
+      <div class="legend-item">⭐ converging</div>
+    </div>
+  </div>
+  <div class="graph-canvas">
+    <svg id="graph-svg"></svg>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+(async () => {
+  const data = await fetch('/api/graph/data').then(r => r.json());
+  if (!data.nodes.length) {
+    document.querySelector('.graph-canvas').innerHTML =
+      '<div class="notes-empty">No wiki pages indexed yet. Save some findings first.</div>';
+    return;
+  }
+
+  const svg = d3.select('#graph-svg');
+  const { width, height } = document.getElementById('graph-svg').getBoundingClientRect();
+
+  const typeColor = {
+    insight: '#60a5fa', pattern: '#4ade80', constraint: '#fbbf24',
+    tension: '#f87171', question: '#c084fc', artifact: '#34d399'
+  };
+  const relColor = { supports: '#4ade80', contradicts: '#f87171', generalises: '#fbbf24', 'relates-to': '#444' };
+
+  // Defs: arrowheads
+  const defs = svg.append('defs');
+  Object.entries(relColor).forEach(([rel, color]) => {
+    defs.append('marker')
+      .attr('id', 'arrow-' + rel)
+      .attr('viewBox', '0 -4 8 8').attr('refX', 18).attr('refY', 0)
+      .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
+      .append('path').attr('d', 'M0,-4L8,0L0,4').attr('fill', color);
+  });
+
+  const sim = d3.forceSimulation(data.nodes)
+    .force('link', d3.forceLink(data.links).id(d => d.id).distance(120))
+    .force('charge', d3.forceManyBody().strength(-300))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide(40));
+
+  const g = svg.append('g');
+
+  // Zoom
+  svg.call(d3.zoom().scaleExtent([0.2, 3]).on('zoom', e => g.attr('transform', e.transform)));
+
+  const link = g.append('g').selectAll('line')
+    .data(data.links).join('line')
+    .attr('stroke', d => relColor[d.relationship] || '#444')
+    .attr('stroke-width', d => d.relationship === 'supports' || d.relationship === 'contradicts' ? 2 : 1)
+    .attr('stroke-dasharray', d => d.relationship === 'relates-to' ? '4 3' : null)
+    .attr('marker-end', d => 'url(#arrow-' + d.relationship + ')');
+
+  const node = g.append('g').selectAll('g')
+    .data(data.nodes).join('g')
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+  node.append('circle')
+    .attr('r', 14)
+    .attr('fill', d => typeColor[d.type] || '#888')
+    .attr('fill-opacity', 0.85)
+    .attr('stroke', d => d.converging ? '#fff' : 'transparent')
+    .attr('stroke-width', 2);
+
+  node.filter(d => d.converging)
+    .append('text').text('⭐')
+    .attr('x', 10).attr('y', -10).attr('font-size', 11);
+
+  node.append('text')
+    .text(d => d.title)
+    .attr('x', 18).attr('y', 4)
+    .attr('fill', '#e2e2e8').attr('font-size', 12);
+
+  node.append('title').text(d => d.type + ': ' + d.title);
+
+  sim.on('tick', () => {
+    link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+})();
+</script>
+
+</body>
+</html>

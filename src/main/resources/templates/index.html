@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Loom</title>
+  <link rel="stylesheet" th:href="@{/loom.css}"/>
+  <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}" defer></script>
+  <script th:src="@{/chat.js}" defer></script>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <span class="topbar-brand">🧵 Loom</span>
+    <nav class="tabs">
+      <button class="tab active" id="tab-chat"
+              hx-get="/chat" hx-target="#content" hx-swap="innerHTML"
+              onclick="setActive(this)">Chat</button>
+      <button class="tab" id="tab-graph"
+              hx-get="/graph" hx-target="#content" hx-swap="innerHTML"
+              onclick="setActive(this)">Graph</button>
+      <button class="tab" id="tab-notes"
+              hx-get="/notes" hx-target="#content" hx-swap="innerHTML"
+              onclick="setActive(this)">Notes</button>
+    </nav>
+  </header>
+  <main class="content" id="content"
+        hx-get="/chat" hx-trigger="load" hx-swap="innerHTML">
+  </main>
+</div>
+<script>
+  function setActive(el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="page" class="notes-layout">
+
+  <!-- Sidebar tree -->
+  <aside class="notes-sidebar">
+    <div class="notes-sidebar-header">Wiki</div>
+    <div id="tree-container"
+         hx-get="/wiki/tree" hx-trigger="load" hx-swap="innerHTML">
+    </div>
+  </aside>
+
+  <!-- Page content -->
+  <div class="notes-content" id="notes-content">
+    <div class="notes-toolbar">
+      <span class="notes-path" id="notes-path">Select a page</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" id="edit-btn" style="display:none" onclick="toggleEdit()">Edit</button>
+        <button class="btn btn-primary btn-sm" id="save-btn" style="display:none" onclick="savePage()">Save</button>
+      </div>
+    </div>
+    <div class="notes-empty" id="notes-body">
+      <span class="muted">Select a page from the sidebar.</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentPath = null;
+let editMode = false;
+
+function openPage(path) {
+  currentPath = path;
+  document.getElementById('notes-path').textContent = path;
+  document.getElementById('edit-btn').style.display = '';
+  document.getElementById('save-btn').style.display = 'none';
+  editMode = false;
+
+  document.querySelectorAll('.tree-file').forEach(el => el.classList.remove('active'));
+  const el = document.querySelector('[data-path="' + path + '"]');
+  if (el) el.classList.add('active');
+
+  htmx.ajax('GET', '/wiki/page?path=' + encodeURIComponent(path), {target: '#notes-body', swap: 'innerHTML'});
+}
+
+function toggleEdit() {
+  editMode = !editMode;
+  const view = document.getElementById('page-view');
+  const editor = document.getElementById('page-editor');
+  if (!view || !editor) return;
+  if (editMode) {
+    view.style.display = 'none';
+    editor.style.display = '';
+    document.getElementById('edit-btn').textContent = 'Preview';
+    document.getElementById('save-btn').style.display = '';
+  } else {
+    view.style.display = '';
+    editor.style.display = 'none';
+    document.getElementById('edit-btn').textContent = 'Edit';
+    document.getElementById('save-btn').style.display = 'none';
+  }
+}
+
+async function savePage() {
+  const editor = document.getElementById('page-editor');
+  if (!editor || !currentPath) return;
+  await fetch('/wiki/page?path=' + encodeURIComponent(currentPath), {
+    method: 'POST', headers: {'Content-Type': 'text/plain'}, body: editor.value
+  });
+  openPage(currentPath);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="tree">
+  <th:block th:each="node : ${nodes}">
+    <div th:if="${node.dir}">
+      <div class="tree-dir" th:text="${node.name}"></div>
+      <th:block th:each="child : ${node.children}">
+        <button class="tree-file"
+                th:text="${child.name}"
+                th:data-path="${child.path}"
+                th:onclick="'openPage(''' + ${child.path} + ''')'">
+        </button>
+      </th:block>
+    </div>
+    <div th:unless="${node.dir}">
+      <button class="tree-file"
+              th:text="${node.name}"
+              th:data-path="${node.path}"
+              th:onclick="'openPage(''' + ${node.path} + ''')'">
+      </button>
+    </div>
+  </th:block>
+</div>
+
+</body>
+</html>
